@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/User");
 const { jwtAuthMiddleware, generateToken } = require("./../jwt");
 
-// for sign up 
+// for sign up  
 router.post('/signup', async (req, res) => {
     try {
         const data = req.body;
@@ -12,19 +12,29 @@ router.post('/signup', async (req, res) => {
         console.log('data saved');
 
         const payload = {
-            id: response.id,
+            id: response.id
         }
         console.log(JSON.stringify(payload));
         const token = generateToken(payload);
         
         console.log("Token is :", token);
-        res.status(200).json({ response: response, token: token });
+        res.status(200).json({ response: response, token:token });
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Internal server Error" })
     }
 })
-
+// router.post('/signup', async (req, res) => {
+//     try {
+//         const data = req.body;
+//         const newUser = new User(data); // Here you're creating a new user object with req.body, but it seems like req.body is missing required fields.
+//         const response = await newUser.save();
+//         // Other code
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).json({ error: "Internal server Error" });
+//     }
+// })
 // for login 
 router.post("/login", async (req, res) => {
     try {
@@ -61,7 +71,7 @@ router.get("/profile", jwtAuthMiddleware, async (req, res) => {
 // 
 router.put("/profile/password",jwtAuthMiddleware, async (req, res) => {
     try {
-        const userId = req.user;
+        const userId = req.user.id;
         const { currentPassword, newPassword } = req.body;
 
         const user = await User.findById(userId);
