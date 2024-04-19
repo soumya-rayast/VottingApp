@@ -36,7 +36,7 @@ router.post("/", jwtAuthMiddleware, async (req, res) => {
     }
 })
 
-router.put("/:candidateID", async (req, res) => {
+router.put("/:candidateID",jwtAuthMiddleware, async (req, res) => {
     try {
         if (!checkAdminRole(req.user.id))
             return res.status(404).json({ message: 'user has not admin role' });
@@ -57,7 +57,7 @@ router.put("/:candidateID", async (req, res) => {
         res.status(500).json({ error: "internal sever Error " })
     }
 })
-router.delete("/:candidateID", async (req, res) => {
+router.delete("/:candidateID",jwtAuthMiddleware, async (req, res) => {
     try {
         if (!checkAdminRole(req.user.id))
             return res.status(404).json({ message: 'user does not have admin role' });
