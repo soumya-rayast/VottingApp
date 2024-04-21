@@ -14,7 +14,7 @@ const checkAdminRole = async (userID) => {
 }
 router.post("/", jwtAuthMiddleware, async (req, res) => {
     try {
-        if (!checkAdminRole(req.user.id))
+        if (! await checkAdminRole(req.user.id))
             return res.status(403).json({ message: 'user does not have admin role' })
         const data = req.body;
         const newCandidate = new Candidate(data);
@@ -23,7 +23,7 @@ router.post("/", jwtAuthMiddleware, async (req, res) => {
         console.log('data saved');
 
         const payload = {
-            id: response.id
+            id: response.id 
         }
         console.log(JSON.stringify(payload));
         const token = generateToken(payload);
@@ -67,7 +67,7 @@ router.delete("/:candidateID",jwtAuthMiddleware, async (req, res) => {
         if (!response) {
             return res.status(404).json({ error: "Candidate not found" });
         }
-        console.log("candidate data updated");
+        console.log("candidate deleted");
         res.status(200).json(response);
     } catch (error) {
         console.log(err);
