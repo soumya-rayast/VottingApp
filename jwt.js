@@ -14,10 +14,10 @@ const jwtAuthMiddleware = (req, res, next) => {
         next();
     } catch (err) {
         console.error(err);
-        res.status(401).json({error:"Invalid token"})
+        res.status(401).json({ error: "Invalid token" })
     }
 }
 const generateToken = (userData) => {
-    return jwt.sign(userData,process.env.JWT_SECRET,{expiresIn:30000})
+    return jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: 30000 })
 }
-module.exports = {jwtAuthMiddleware,generateToken};
+module.exports = { jwtAuthMiddleware, generateToken };
