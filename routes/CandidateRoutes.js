@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const { jwtAuthMiddleware, generateToken } = require("../jwt");
-const Candidate = require("../models/candidate")
+const Candidate = require("../models/candidate");
+const { default: mongoose } = require("mongoose");
 
 const checkAdminRole = async (userID) => {
     try {
@@ -35,11 +36,15 @@ router.post("/", jwtAuthMiddleware, async (req, res) => {
 router.put("/:candidateID", jwtAuthMiddleware, async (req, res) => {
     try {
         if (!checkAdminRole(req.user.id))
-            return res.status(403).json({ message: 'user has not admin role2' });
+            return res.status(403).json({ message: 'user does not have admin role2' });
 
         const candidateID = req.params.candidateID;
         const updatedCandidateData = req.body;
 
+        // Ensuring candidateID is a valid ObjectId
+        if(!mongoose.Types.ObjectId.isValid(candidateID)){
+            return res.status(400).json({error : "invalid Candidate ID"})
+        }
         const response = await Candidate.findByIdAndUpdate(candidateID, updatedCandidateData, {
             new: true,
             runValidators: true,
@@ -51,7 +56,7 @@ router.put("/:candidateID", jwtAuthMiddleware, async (req, res) => {
         console.log('Candidate Data updated');
         res.status(200).json(response);
 
-    } catch (error) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Internal sever Error " })
     }
@@ -72,7 +77,7 @@ router.delete("/:candidateID", jwtAuthMiddleware, async (req, res) => {
         console.log("candidate deleted");
         res.status(200).json(response);
 
-    } catch (error) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Internal sever Error " })
     }
@@ -101,7 +106,7 @@ router.get("/vote/:candidateID", jwtAuthMiddleware, async (req, res) => {
         if (user.role == "admin") {
             res.status(403).json({ message: "admin is not allowed" })
         };
-        candidate.votes.push({ user: userId });
+        candidate.votes.push({ user: userId});
         candidate.voteCount++;
         await candidate.save();
 
@@ -115,24 +120,7 @@ router.get("/vote/:candidateID", jwtAuthMiddleware, async (req, res) => {
         res.status(500).json({ error: "Internal sever Error" })
     }
 })
-
-// vote count 
-// router.get("/vote/count", async (req, res) => {
-//     try {
-//         const candidate = await Candidate.find().sort({ voteCount:"desc"});
-//         const voteRecord = candidate.map((data) => {
-//             return {
-//                 party: data.party,
-//                 count: data.voteCount
-//             }
-//         })
-//         return res.status(200).json(voteRecord);
-
-//     } catch (err) {
-//         console.log(err);
-//         res.status(500).json({ error: "internal sever Error " });
-//     }
-// })
+// for vote count
 router.get("/vote/count", async (req, res) => {
     try {
         const candidate = await Candidate.find().sort({ voteCount: "desc" });
@@ -146,14 +134,14 @@ router.get("/vote/count", async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: "internal sever Error " });
+        res.status(500).json({ error: "internal sever Error  " });
     }
 })
 
 // getting all candidates with only name and party fields 
 router.get("/", async (req, res) => {
     try {
-        const candidates = await Candidate.find({}, 'name party = _id');
+        const candidates = await Candidate.find({}, 'name party-_id');
         res.status(200).json(candidates);
     } catch (err) {
         console.log(err);
