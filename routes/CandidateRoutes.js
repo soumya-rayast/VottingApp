@@ -3,8 +3,9 @@ const router = express.Router();
 const User = require("../models/User");
 const { jwtAuthMiddleware, generateToken } = require("../jwt");
 const Candidate = require("../models/candidate");
-const { default: mongoose } = require("mongoose");
 
+
+// for admin check 
 const checkAdminRole = async (userID) => {
     try {
         const user = await User.findById(userID)
@@ -15,47 +16,42 @@ const checkAdminRole = async (userID) => {
         return false;
     }
 }
+
+// new candidate register 
 router.post("/", jwtAuthMiddleware, async (req, res) => {
     try {
-        if (!( await checkAdminRole(req.user.id)))
-            return res.status(403).json({ message: 'user does not have admin role1' })
-
+        if (!(await checkAdminRole(req.user.id)))
+            return res.status(403).json({ message: 'user does not have admin role' })
         const data = req.body;
         const newCandidate = new Candidate(data);
-
         const response = await newCandidate.save();
         console.log('data saved');
         res.status(200).json({ response: response });
-
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Internal Server Error" });
     }
 })
-
+//update candidate profile 
 router.put("/:candidateID", jwtAuthMiddleware, async (req, res) => {
     try {
         if (!checkAdminRole(req.user.id))
-            return res.status(403).json({ message: 'user does not have admin role2' });
-
+            return res.status(403).json({ message: 'user does not have admin role' });
         const candidateID = req.params.candidateID;
         const updatedCandidateData = req.body;
-
         // Ensuring candidateID is a valid ObjectId
-        if(!mongoose.Types.ObjectId.isValid(candidateID)){
-            return res.status(400).json({error : "invalid Candidate ID"})
+        if (!mongoose.Types.ObjectId.isValid(candidateID)) {
+            return res.status(400).json({ error: "invalid Candidate ID" })
         }
         const response = await Candidate.findByIdAndUpdate(candidateID, updatedCandidateData, {
             new: true,
             runValidators: true,
         });
-
         if (!response) {
             return res.status(404).json({ error: "Candidate not found" });
         }
         console.log('Candidate Data updated');
         res.status(200).json(response);
-
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Internal sever Error " })
@@ -66,7 +62,7 @@ router.put("/:candidateID", jwtAuthMiddleware, async (req, res) => {
 router.delete("/:candidateID", jwtAuthMiddleware, async (req, res) => {
     try {
         if (!checkAdminRole(req.user.id))
-            return res.status(403).json({ message: 'user does not have admin role3' });
+            return res.status(403).json({ message: 'user does not have admin role' });
 
         const candidateID = req.params.candidateID;
         const response = await Candidate.findByIdAndDelete(candidateID);
@@ -76,7 +72,6 @@ router.delete("/:candidateID", jwtAuthMiddleware, async (req, res) => {
         }
         console.log("candidate deleted");
         res.status(200).json(response);
-
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Internal sever Error " })
@@ -88,7 +83,6 @@ router.delete("/:candidateID", jwtAuthMiddleware, async (req, res) => {
 router.get("/vote/:candidateID", jwtAuthMiddleware, async (req, res) => {
     // no admin can vote 
     // user can only vote 
-
     candidateID = req.params.candidateID;
     userId = req.user.id;
     try {
@@ -98,15 +92,15 @@ router.get("/vote/:candidateID", jwtAuthMiddleware, async (req, res) => {
         }
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: "user not found" })
+            return res.status(404).json({ message: "user not found" });
         }
         if (user.isVoted) {
-            res.status(400).json({ message: "You have already voted" })
+            res.status(400).json({ message: "You have already voted" });
         }
         if (user.role == "admin") {
-            res.status(403).json({ message: "admin is not allowed" })
+            res.status(403).json({ message: "admin is not allowed" });
         };
-        candidate.votes.push({ user: userId});
+        candidate.votes.push({ user: userId });
         candidate.voteCount++;
         await candidate.save();
 
