@@ -115,7 +115,7 @@ router.get("/vote/:candidateID", jwtAuthMiddleware, async (req, res) => {
     }
 })
 // for vote count
-router.get("/vote/count", async (req, res) => {
+router.get("/votecount", async (req, res) => {
     try {
         const candidate = await Candidate.find().sort({ voteCount: "desc" });
         const voteRecord = candidate.map((data) => {
@@ -123,12 +123,15 @@ router.get("/vote/count", async (req, res) => {
                 party: data.party,
                 count: data.voteCount
             }
-        })
+        });
+        // const voteRecord = candidates.map(candidate => ({
+        //     party: candidate.party,
+        //     count: candidate.voteCount
+        // }));
         return res.status(200).json(voteRecord);
-
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: "internal sever Error  " });
+        res.status(500).json({ error: "internal sever Error" });
     }
 })
 
